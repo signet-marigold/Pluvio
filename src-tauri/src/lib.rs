@@ -9,6 +9,25 @@ use tokio::time::Duration;
 
 mod noisegen;
 
+
+// Make sure the ui lines up with these init values
+// Value between 0.0(min) - 1.0(max)
+const INIT_MASTER_VOLUME: f32 = 0.5;
+const INIT_TRACK_VOLUME: f32 = 0.25;
+const VOLUME_CHANGE_DURATION: u64 = 100;
+
+struct AudioTrack {
+  sink: Arc<Sink>,
+  base_volume: f32,
+}
+
+struct AppState {
+  tracks: Mutex<HashMap<String, AudioTrack>>,
+  master_volume: Arc<Mutex<f32>>,
+  stream_handle: Arc<OutputStreamHandle>,
+  cancel_flag: Arc<AtomicBool>,
+}
+
 fn fade_volume(sink: Arc<Sink>, target_volume: f32, duration: Duration, cancel_flag: Arc<AtomicBool>) {
   let initial_volume = sink.volume();
   let steps = 20; // Number of steps for the fade
@@ -36,26 +55,6 @@ fn fade_volume(sink: Arc<Sink>, target_volume: f32, duration: Duration, cancel_f
   sink.set_volume(target_volume);
   cancel_flag.store(false, Ordering::Relaxed); // Reset the flag
 }
-
-
-// Make sure the ui lines up with these init values
-// Value between 0.0(min) - 1.0(max)
-const INIT_MASTER_VOLUME: f32 = 0.85;
-const INIT_TRACK_VOLUME: f32 = 0.3;
-const VOLUME_CHANGE_DURATION: u64 = 100;
-
-struct AudioTrack {
-  sink: Arc<Sink>,
-  base_volume: f32,
-}
-
-struct AppState {
-  tracks: Mutex<HashMap<String, AudioTrack>>,
-  master_volume: Arc<Mutex<f32>>,
-  stream_handle: Arc<OutputStreamHandle>,
-  cancel_flag: Arc<AtomicBool>,
-}
-
 
 #[tauri::command]
 async fn add_file_track(
@@ -100,7 +99,6 @@ async fn add_noise_track(
     "white" => Box::new(noisegen::WhiteNoise::new().repeat_infinite()),
     "brown" => Box::new(noisegen::BrownNoise::new().repeat_infinite()),
     "pink" => Box::new(noisegen::PinkNoise::new().repeat_infinite()),
-    "rain" => Box::new(noisegen::RainNoise::new().repeat_infinite()),
     _ => return Err("Invalid noise type".into()),
   };
 

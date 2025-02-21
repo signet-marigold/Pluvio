@@ -3,7 +3,6 @@
 
   const tracks = [
     { id: 'master', name: 'Master Volume', type: 'master' },
-    { id: 'rain',   name: 'Rain',          type: 'rain' },
     { id: 'white',  name: 'White Noise',   type: 'white' },
     { id: 'brown',  name: 'Brown Noise',   type: 'brown' },
     { id: 'pink',   name: 'Pink Noise',    type: 'pink' },
@@ -49,7 +48,7 @@
       type="range"
       min="0" max="1" step="0.01"
       on:input={(e) => updateVolume('master', e.target.value)}
-      value="0.85"
+      value="0.5"
     />
   </div>
 
@@ -66,7 +65,7 @@
         type="range"
         min="0" max="1" step="0.01"
         on:input={(e) => updateVolume(track.id, e.target.value)}
-        value="0.3"
+        value="0.25"
       />
     </div>
   {/each}
