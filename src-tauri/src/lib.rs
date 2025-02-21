@@ -74,6 +74,9 @@ async fn add_file_track(
   sink.append(buffered_source.repeat_infinite());
   sink.pause();
 
+  // Set init volume
+  sink.set_volume(INIT_TRACK_VOLUME * INIT_MASTER_VOLUME);
+
   // Store the track
   let mut tracks = state.tracks.lock().unwrap();
   tracks.insert(id, AudioTrack {
