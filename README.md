@@ -65,7 +65,7 @@ Whether you're a developer looking for a productivity boost, a student needing f
 1. Clone the repository:
    ```bash
    git clone https://github.com/signet-marigold/Pluvio.git
-   cd P
+   cd Pluvio
    ```
 2. Install dependencies:
    ```bash
