@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Waveform from './Waveform.svelte';
   import { invoke } from "@tauri-apps/api/core";
 
   const tracks = [
@@ -39,44 +40,66 @@
   }
 </script>
 
-<div class="container">
-  <h1>Noise Machine</h1>
+<div class="app">
+  <div class="container">
+    <h1>Pluvio</h1>
 
-  <!-- Master Volume -->
-  <div class="track master">
-    <label>Master Volume</label>
-    <input
-      type="range"
-      min="0" max="1" step="0.01"
-      on:input={(e) => updateVolume('master', e.target.value)}
-      value="0.85"
-    />
-  </div>
-
-  <!-- Individual Tracks -->
-  {#each tracks.filter(t => t.type !== 'master') as track}
-    <div class="track">
-      <div class="controls">
-        <button on:click={() => toggleTrack(track.id)}>
-          {trackStates[track.id]?.playing ? '⏸' : '▶'}
-        </button>
-        <label>{track.name}</label>
-      </div>
+    <!-- Master Volume -->
+    <div class="track master">
+      <label>Master Volume</label>
       <input
         type="range"
         min="0" max="1" step="0.01"
-        on:input={(e) => updateVolume(track.id, e.target.value)}
-        value="0.3"
+        on:input={(e) => updateVolume('master', e.target.value)}
+        value="0.85"
       />
     </div>
-  {/each}
+
+    <div class="scroll">
+      <!-- Individual Tracks -->
+      {#each tracks.filter(t => t.type !== 'master') as track}
+        <div class="track">
+          <div class="controls">
+            <button on:click={() => toggleTrack(track.id)}>
+              {trackStates[track.id]?.playing ? '⏸' : '▶'}
+            </button>
+            <label>{track.name}</label>
+          </div>
+          <input
+            type="range"
+            min="0" max="1" step="0.01"
+            on:input={(e) => updateVolume(track.id, e.target.value)}
+            value="0.3"
+          />
+        </div>
+      {/each}
+    </div>
+    <!-- Real-Time Waveform Display -->
+    <div class="waveform">
+      <Waveform />
+    </div>
+  </div>
 </div>
 
 <style>
+  .app {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+  }
+
   .container {
     padding: 2rem;
     max-width: 600px;
     margin: 0 auto;
+  }
+
+  .scroll {
+    overflow-x: scroll;
+    max-height: 500px;
   }
 
   .track {
@@ -107,5 +130,12 @@
   input[type="range"] {
     flex: 1;
     margin-left: auto;
+  }
+
+  .waveform {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
   }
 </style>

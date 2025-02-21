@@ -3,11 +3,38 @@ use std::fs::File;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::State;
+use tauri::{State, AppHandle, Manager, Emitter};
 use rodio::{Decoder, Sink, Source, OutputStream, OutputStreamHandle};
 use tokio::time::Duration;
+use tokio::sync::mpsc;
+use tokio::runtime::Runtime;
+use ringbuf::{HeapRb, Consumer, Producer};
 
+mod intercept;
 mod noisegen;
+mod capture;
+
+
+fn start_audio_thread(producer: Producer<f32>) -> cpal::Stream {
+    let host = cpal::default_host();
+    let device = host.default_output_device().unwrap();
+    let config = device.default_output_config().unwrap();
+
+    let stream = device.build_output_stream(
+        &config.into(),
+        move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+            for sample in data {
+                producer.push(*sample).ok();
+            }
+        },
+        |err| eprintln!("Audio stream error: {}", err),
+        None
+    ).unwrap();
+
+    stream.play().unwrap();
+    stream
+}
+
 
 fn fade_volume(sink: Arc<Sink>, target_volume: f32, duration: Duration, cancel_flag: Arc<AtomicBool>) {
   let initial_volume = sink.volume();
@@ -49,12 +76,24 @@ struct AudioTrack {
   base_volume: f32,
 }
 
+struct AudioState {
+  producer: Producer<f32>,
+}
+
+
+
 struct AppState {
   tracks: Mutex<HashMap<String, AudioTrack>>,
   master_volume: Arc<Mutex<f32>>,
   stream_handle: Arc<OutputStreamHandle>,
   cancel_flag: Arc<AtomicBool>,
+  runtime: Runtime, // Global Tokio runtime
+  audio_state: Mutex<AudioState>,
 }
+
+// Implement thread safety
+unsafe impl Send for AudioState {}
+unsafe impl Sync for AudioState {}
 
 
 #[tauri::command]
@@ -62,17 +101,31 @@ async fn add_file_track(
   id: String,
   file_path: String,
   state: State<'_, AppState>,
+  app_handle: AppHandle,
 ) -> Result<(), String> {
   let stream_handle = &state.stream_handle;
   let sink = Sink::try_new(stream_handle).map_err(|e| e.to_string())?;
 
-  // Open the WAV file
+  // Open the audio file
   let file = File::open(&file_path).map_err(|e| e.to_string())?;
   let source = Decoder::new(file).map_err(|e| e.to_string())?;
-  let buffered_source = source.buffered();
+
+  // Create a channel to send samples to the frontend
+  let (sample_tx, mut sample_rx) = mpsc::channel(100);
+
+  // Wrap the source in Buffered and create the intercepting source
+  let intercepting_source = intercept::InterceptingSource::new(source.convert_samples().buffered(), sample_tx);
+
+  // Use the global runtime to spawn the task
+  state.runtime.spawn(async move {
+    let mut sample_rx = sample_rx;
+    while let Some(sample) = sample_rx.recv().await {
+      let _ = app_handle.emit("audio_sample", sample); // Emit the sample to the frontend
+    }
+  });
 
   // Append the source to the sink and loop it
-  sink.append(buffered_source.repeat_infinite());
+  sink.append(intercepting_source.buffered().repeat_infinite());
   sink.pause();
 
   // Store the track
@@ -91,6 +144,7 @@ async fn add_noise_track(
   id: String,
   noise_type: String,
   state: State<'_, AppState>,
+  app_handle: AppHandle,
 ) -> Result<(), String> {
   println!("Adding track: {}", id);
 
@@ -104,8 +158,23 @@ async fn add_noise_track(
     _ => return Err("Invalid noise type".into()),
   };
 
-  sink.append(source);
+  // Create a channel to send samples to the frontend
+  let (sample_tx, mut sample_rx) = mpsc::channel(100);
+
+  // Wrap the source in Buffered and create the intercepting source
+  let intercepting_source = intercept::InterceptingSource::new(source.convert_samples().buffered(), sample_tx);
+
+  // Use the global runtime to spawn the task
+  state.runtime.spawn(async move {
+    let mut sample_rx = sample_rx;
+    while let Some(sample) = sample_rx.recv().await {
+      let _ = app_handle.emit("audio_sample", sample); // Emit the sample to the frontend
+    }
+  });
+
+  sink.append(intercepting_source);
   sink.pause();
+  println!("Sink is playing for track: {}", id); // Log sink playback
 
   // Set init volume
   sink.set_volume(INIT_TRACK_VOLUME * INIT_MASTER_VOLUME);
@@ -138,7 +207,7 @@ async fn set_volume(
 
     // Spawn a thread to perform the fade
     thread::spawn(move || {
-        fade_volume(sink, target_volume, Duration::from_millis(VOLUME_CHANGE_DURATION), cancel_flag);
+      fade_volume(sink, target_volume, Duration::from_millis(VOLUME_CHANGE_DURATION), cancel_flag);
     });
 
     track.base_volume = volume;
@@ -217,6 +286,13 @@ async fn resume_track(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   let (_stream, stream_handle) = OutputStream::try_default().expect("Failed to create audio stream");
+  let runtime = Runtime::new().expect("Failed to create Tokio runtime"); // Create the runtime;
+
+  let rb = HeapRb::<f32>::new(4096);
+  let (producer, consumer) = rb.split();
+
+  // Start audio thread
+  let _stream = start_audio_thread(producer);
 
   tauri::Builder::default()
     .setup(|app| {
@@ -227,6 +303,26 @@ pub fn run() {
             .build(),
         )?;
       }
+
+      let handle = app.handle();
+
+            // Spawn waveform processing task
+            tokio::spawn(async move {
+                let mut consumer = consumer;
+                let mut buffer = Vec::with_capacity(512);
+
+                loop {
+                    while let Some(sample) = consumer.pop() {
+                        buffer.push(sample);
+                        if buffer.len() >= 512 {
+                            handle.emit("waveform", &buffer).unwrap();
+                            buffer.clear();
+                        }
+                    }
+                    tokio::time::sleep(Duration::from_millis(10)).await;
+                }
+            });
+
       Ok(())
     })
     .manage(AppState {
@@ -234,6 +330,10 @@ pub fn run() {
       master_volume: Arc::new(Mutex::new(INIT_MASTER_VOLUME)),
       stream_handle: Arc::new(stream_handle),
       cancel_flag: Arc::new(AtomicBool::new(false)),
+      runtime,
+      audio_state: Mutex::new(AudioState {
+        producer: consumer.into_producer()
+      })
     })
     .invoke_handler(tauri::generate_handler![
       add_noise_track,
