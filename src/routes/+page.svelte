@@ -42,7 +42,7 @@
 
 <div class="background"></div>
 
-<div class="container">
+<div class="container noselect">
   <h1 class="title">Pluvio</h1>
 
   <!-- Master Volume -->
@@ -61,7 +61,7 @@
   {#each tracks.filter(t => t.type !== 'master') as track}
     <div class="track {trackStates[track.id]?.playing ? 'active' : 'inactive'}" on:click={() => toggleTrack(track.id)}>
       <label class="track-label">{track.name}</label>
-      <div class="volume-container">
+      <div class="volume-container track-volume">
         <Range
           min={0} max={100}
           step={1} value={25}
@@ -73,6 +73,15 @@
 </div>
 
 <style>
+  .noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+      -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none;
+  }
+
   .master-volume {
     --track-focus: #1f1f1f;
     --track-highlight-bgcolor: #1f1f1f;
@@ -133,17 +142,25 @@
     padding: 14px;
     background: linear-gradient(45deg, #001831, #3d0d3e);
     border-radius: 24px;
+    cursor: pointer;
   }
 
   .track.master {
     background: transparent;
     font-size: 1.2em;
+
   }
 
   .track-label {
     width: 150px;
     font-weight: bold;
     padding-left: 5px;
+    cursor: pointer;
+  }
+
+  .track.master,
+  .track.master .track-label {
+    cursor: initial;
   }
 
   .volume-container {
