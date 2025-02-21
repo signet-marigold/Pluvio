@@ -50,7 +50,7 @@ Whether you're a developer looking for a productivity boost, a student needing f
 
 ## Screenshots 🖼️
 
-![Pluvio Interface](.github/screenshots/ksnip_20250220-041830.png)  
+![Pluvio Interface](.github/screenshots/ksnip_20250221-021846.png)  
 *The clean and intuitive interface of Pluvio.*
 
 ---
