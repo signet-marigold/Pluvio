@@ -117,7 +117,7 @@
   }
 
   .background {
-    position: absolute;
+    position: fixed;
     z-index: -1;
     width: 100%;
     height: 100%;
@@ -132,6 +132,7 @@
     width: 400px;
     margin: 0 auto;
     color: white;
+    overflow-x: scroll;
   }
 
   .track {
