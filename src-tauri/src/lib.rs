@@ -81,7 +81,7 @@ async fn add_file_track(
   let mut tracks = state.tracks.lock().unwrap();
   tracks.insert(id, AudioTrack {
     sink: Arc::new(sink),
-    base_volume: 1.0,
+    base_volume: INIT_TRACK_VOLUME,
   });
 
   Ok(())
