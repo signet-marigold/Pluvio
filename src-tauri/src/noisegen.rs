@@ -12,7 +12,7 @@ const SAMPLE_RATE: u32 = 44100;
 // Scale noise for the same aparent volume
 const SCALE_WHITE_NOISE: f32 = 0.2;
 const SCALE_BROWN_NOISE: f32 = 1.0;
-const SCALE_PINK_NOISE: f32 = 0.6;
+const SCALE_PINK_NOISE: f32 = 0.55;
 
 // White Noise Generator
 // No need for multiple generators for stereo
