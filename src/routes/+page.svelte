@@ -8,9 +8,9 @@
     { id: 'white',  name: 'White Noise',   type: 'white' },
     { id: 'brown',  name: 'Brown Noise',   type: 'brown' },
     { id: 'pink',   name: 'Pink Noise',    type: 'pink' },
-    { id: 'rain1',  name: 'Light Rain',    type: 'assets/111405.wav' },
-    { id: 'rain2',  name: 'Medium Rain',   type: 'assets/114354.wav' },
-    { id: 'rain3',  name: 'Heavy Rain',    type: 'assets/111154.wav' },
+    { id: 'rain1',  name: 'Light Rain',    type: 'assets/111405.ogg' },
+    { id: 'rain2',  name: 'Medium Rain',   type: 'assets/114354.ogg' },
+    { id: 'rain3',  name: 'Heavy Rain',    type: 'assets/111154.ogg' },
   ];
 
   let trackStates = {};
