@@ -8,15 +8,28 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+bower_components
+jspm_packages
 dist
 dist-ssr
 *.local
+build
+
+.grunt
+.npm
+.yarn
+.next.
+yarn-integrity
+*.tgz
+
+.dot
 
 # Editor directories and files
 .vscode/*
 !.vscode/extentions.json
 .idea
 .DS_Store
+.cache
 *.suo
 *.ntvs*
 *.njsproj
@@ -26,3 +39,13 @@ dist-ssr
 # Editor temp files
 *.swap
 *.kate-swp
+
+.eslintcache
+.svelte-kit
+
+.pid
+pids
+.pid-lock
+
+coverage
+.nyc_output
