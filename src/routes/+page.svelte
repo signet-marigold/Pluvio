@@ -76,8 +76,8 @@
   .noselect {
     -webkit-touch-callout: none; /* iOS Safari */
       -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-        -moz-user-select: none; /* Old versions of Firefox */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
           -ms-user-select: none; /* Internet Explorer/Edge */
               user-select: none;
   }
@@ -129,7 +129,9 @@
   }
 
   .container {
-    width: 400px;
+    font-size: 12px;
+    font-family: sans-serif;
+    width: 380px;
     margin: 0 auto;
     color: white;
     overflow-x: scroll;
@@ -147,13 +149,12 @@
   }
 
   .track.master {
+    font-size: 16px;
     background: transparent;
-    font-size: 1.2em;
-
   }
 
   .track-label {
-    width: 150px;
+    width: 100px;
     font-weight: bold;
     padding-left: 5px;
     cursor: pointer;
@@ -169,10 +170,10 @@
   }
 
   .title {
+    font-size: 30px;
     margin-left: 15px;
-    font-size: 2.2em;
     margin-bottom: 0;
-    margin-top: 28px;
+    margin-top: 30px;
   }
 
 </style>
