@@ -15,6 +15,7 @@ mod noisegen;
 const INIT_MASTER_VOLUME: f32 = 0.5;
 const INIT_TRACK_VOLUME: f32 = 0.25;
 const VOLUME_CHANGE_DURATION: u64 = 100;
+const PAUSE_CHANGE_DURATION: u64 = 200;
 
 struct AudioTrack {
   sink: Arc<Sink>,
@@ -75,7 +76,7 @@ async fn add_file_track(
   sink.pause();
 
   // Set init volume
-  sink.set_volume(INIT_TRACK_VOLUME * INIT_MASTER_VOLUME);
+  sink.set_volume(0.0); // Track volume will fade in as it is unpaused
 
   // Store the track
   let mut tracks = state.tracks.lock().unwrap();
@@ -109,7 +110,7 @@ async fn add_noise_track(
   sink.pause();
 
   // Set init volume
-  sink.set_volume(INIT_TRACK_VOLUME * INIT_MASTER_VOLUME);
+  sink.set_volume(0.0); // Track volume will fade in as it is unpaused
 
   let mut tracks = state.tracks.lock().unwrap();
   tracks.insert(id, AudioTrack {
@@ -139,7 +140,7 @@ async fn set_volume(
 
     // Spawn a thread to perform the fade
     thread::spawn(move || {
-        fade_volume(sink, target_volume, Duration::from_millis(VOLUME_CHANGE_DURATION), cancel_flag);
+      fade_volume(sink, target_volume, Duration::from_millis(VOLUME_CHANGE_DURATION), cancel_flag);
     });
 
     track.base_volume = volume;
@@ -188,6 +189,16 @@ async fn pause_track(
   let mut tracks = state.tracks.lock().unwrap();
 
   if let Some(track) = tracks.get_mut(&id) {
+    // Cancel any ongoing fade
+    state.cancel_flag.store(true, Ordering::Relaxed);
+
+    let target_volume = 0.0;
+
+    let sink = Arc::clone(&track.sink); // Use a shared reference to the Sink
+    let cancel_flag = Arc::clone(&state.cancel_flag); // Clone the atomic flag
+
+    fade_volume(sink, target_volume, Duration::from_millis(PAUSE_CHANGE_DURATION), cancel_flag);
+
     track.sink.pause();
     println!("Paused track: {}", id);
   } else {
@@ -205,6 +216,20 @@ async fn resume_track(
   let mut tracks = state.tracks.lock().unwrap();
 
   if let Some(track) = tracks.get_mut(&id) {
+    // Cancel any ongoing fade
+    state.cancel_flag.store(true, Ordering::Relaxed);
+
+    let master_volume = *state.master_volume.lock().unwrap();
+    let target_volume = track.base_volume * master_volume;
+
+    let sink = Arc::clone(&track.sink); // Use a shared reference to the Sink
+    let cancel_flag = Arc::clone(&state.cancel_flag); // Clone the atomic flag
+
+    // Spawn a thread to perform the fade
+    thread::spawn(move || {
+      fade_volume(sink, target_volume, Duration::from_millis(PAUSE_CHANGE_DURATION), cancel_flag);
+    });
+
     track.sink.play();
     println!("Resumed track: {}", id);
   } else {
