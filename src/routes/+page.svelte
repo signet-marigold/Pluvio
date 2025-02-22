@@ -38,12 +38,14 @@
       invoke('set_volume', { id, volume: parseFloat(value / 100.0) });
     }
   }
+
+  import logo from "$lib/assets/pluvio_banner_app.png"
 </script>
 
 <div class="background"></div>
 
 <div class="container noselect">
-  <h1 class="title">Pluvio</h1>
+  <img class="title nodrag" src={logo} alt="Pluvio">
 
   <!-- Master Volume -->
   <div class="track master">
@@ -80,6 +82,16 @@
          -moz-user-select: none; /* Old versions of Firefox */
           -ms-user-select: none; /* Internet Explorer/Edge */
               user-select: none;
+  }
+
+  .nodrag {
+    pointer-events: none;
+    user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
   }
 
   .master-volume {
@@ -171,9 +183,11 @@
 
   .title {
     font-size: 30px;
-    margin-left: 15px;
+    margin-left: 20px;
     margin-bottom: 0;
     margin-top: 30px;
+    object-fit: contain;
+    width: 340px;
   }
 
 </style>
