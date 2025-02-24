@@ -1,4 +1,5 @@
 <script lang="ts">
+
   import { invoke } from "@tauri-apps/api/core";
   import { Svrollbar } from "svrollbar";
   import Range from "./Range.svelte";
@@ -103,12 +104,14 @@
       <div class="plates__container">
         <div class="scroll-cover scroll-cover-top"></div>
         <div class="scroll-cover scroll-cover-bottom"></div>
+        <div class="scroll-bookend scroll-bookend-top"></div>
         {#each tracks.filter(t => t.type !== 'master') as track}
           <div class="plate {trackStates[track.id]?.playing ? 'active' : 'inactive'}">
             <div class="color bottom"></div>
             <div class="color top"></div>
           </div>
         {/each}
+        <div class="scroll-bookend scroll-bookend-bottom"></div>
       </div>
 
     </div>
@@ -145,12 +148,12 @@
   }
 
   .master-volume {
-    --track-focus: #1f1f1f;
-    --track-highlight-bgcolor: #1f1f1f;
-    --track-highlight-bg: linear-gradient(359deg, #1f1f1f, #6b6b6b);
+    --track-focus: #831c79;
+    --track-highlight-bgcolor: #831c79;
+    --track-highlight-bg: linear-gradient(90deg, #491c83, #831c79, #cd273d);
     --thumb-holding-outline: rgba(255, 255, 255, 0.2);
-    --tooltip-bgcolor: #1f1f1f;
-    --tooltip-bg: linear-gradient(45deg, #6b6b6b, #1f1f1f);
+    --tooltip-bgcolor: #831c79;
+    --tooltip-bg: linear-gradient(230deg, #cd273d, #831c79);
   }
   .active .track-volume {
     --track-focus: #68b8fe;
@@ -160,7 +163,7 @@
     --tooltip-bgcolor: #3879ff;
     --tooltip-bg: linear-gradient(45deg, #275cef, #5193ff);
   }
-  .inactive {--inactive-base-color: #8c8c8c}
+  .inactive {--inactive-base-color: #7b7b7b}
   .inactive .track-volume {
     --track-focus: var(--inactive-base-color);
     --track-highlight-bgcolor: var(--inactive-base-color);
@@ -223,11 +226,15 @@
     --track-plate-width: calc(
         var(--track-view-width) -
         var(--track-margin) * 2);
-    --track-view-sc-offset: calc(
+    --track-view-sc-offset-top: calc(
         var(--track-view-height) -
         var(--track-view-sc-height) +
         var(--track-margin) * 2 -
         var(--track-extra-space-top));
+    --track-view-sc-offset-bottom: calc((
+        var(--track-view-sc-height) -
+        var(--track-margin) -
+        var(--track-extra-space-bottom)) * -1);
     --track-volume-width: calc(var(--track-width) - var(--track-label-width));
 
     overflow-y: scroll;
@@ -235,12 +242,7 @@
     border-radius: 28px;
     padding: var(--track-margin);
     box-shadow: inset 0 0 22px 0 rgba(0, 0, 0, 0.7);
-    background: linear-gradient(0deg,
-      #10108060 0%,
-      #4fffdc08 30%,
-      #10106007 60%,
-      #50105040 100%
-    );
+    background: linear-gradient(0deg, #12000090, #00120b70);
   }
 
   .tracks__scrollable {
@@ -253,7 +255,8 @@
     padding: var(--track-extra-space-top) 0 var(--track-extra-space-bottom);
   }
 
-  .scroll-cover {
+  .scroll-cover,
+  .scroll-bookend {
     /*
       image is 380px wide
       edge curve is not preserved if stretched
@@ -261,19 +264,35 @@
     */
     width: var(--track-view-width);
     height: var(--track-view-sc-height);
-    position: fixed;
-    z-index: 2;
     object-fit: contain;
     background-repeat: no-repeat;
     margin-left: calc(var(--track-margin) * -1);
   }
+
+  .scroll-cover {
+    position: fixed;
+    z-index: 2;
+  }
   .scroll-cover-top {
-    background-image: url("$lib/assets/fade/fade_e4_white_top.svg");
+    background-image: url("$lib/assets/fade/fade-top.svg");
     margin-top: calc(var(--track-extra-space-top) * -1);
   }
   .scroll-cover-bottom {
+    background-image: url("$lib/assets/fade/fade-bottom.svg");
+    margin-top: var(--track-view-sc-offset-top);
+  }
+
+  .scroll-bookend {
+    position: absolute;
+    z-index: 3;
+  }
+  .scroll-bookend-top {
+    background-image: url("$lib/assets/fade/fade_e4_white_top.svg");
+    margin-top: calc(var(--track-extra-space-top) * -1);
+  }
+  .scroll-bookend-bottom {
     background-image: url("$lib/assets/fade/fade_e4_white_bottom.svg");
-    margin-top: var(--track-view-sc-offset);
+    margin-top: var(--track-view-sc-offset-bottom);
   }
 
   .plates__container {
@@ -284,7 +303,8 @@
   }
 
   .plate > .color {
-    box-shadow: 5px 5px 8px 0px #00000060;
+    box-shadow: 5px 5px 8px 0px #00000060,
+        inset 0px 2px 2px 0 rgba(255, 255, 255, 0.1);
     width: var(--track-plate-width);
     position: relative;
     -webkit-transition: opacity 700ms cubic-bezier(0, 0.5, 0, 1 );
@@ -293,10 +313,10 @@
   }
 
   .plate > .color.bottom {
-    background: linear-gradient(45deg, #002143 0%, #290038 100%);
+    background: linear-gradient(45deg, #002041, #400f41);
   }
   .plate > .color.top {
-    background: linear-gradient(45deg, #0e4c8c 0%, #751598 100%);
+    background: linear-gradient(45deg, #042580, #72185e);
     position: absolute;
     z-index: 1;
     margin-top: calc(var(--track-height) * -1);
@@ -310,7 +330,7 @@
   .track,
   .plate > .color {
     margin-top: var(--track-margin);
-    border-radius: 20px;
+    border-radius: 18px;
     height: var(--track-height);
   }
 

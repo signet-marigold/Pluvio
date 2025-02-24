@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Pluvio",
-        "width": 520,
-        "height": 560,
+        "width": 488,
+        "height": 534,
         "resizable": false,
         "fullscreen": false
       }
