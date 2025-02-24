@@ -59,14 +59,15 @@
 
   import logo from "$lib/assets/pluvio_banner_app.png"
 
-  // Scrollbar binds for svrollbar
+  // Binds for svrollbar
   export let viewport: Element
   export let contents: Element
 </script>
 
 <div class="background"></div>
 
-<div class="container noselect">
+<div class="main">
+<div class="wrapper noselect">
   <img class="title nodrag" src={logo} alt="Pluvio">
 
   <!-- Master Volume -->
@@ -117,18 +118,22 @@
     </div>
   </div>
 
-  <!--<Svrollbar {viewport} {contents} />-->
+  <Svrollbar
+      {viewport} {contents}
+      margin={{top:160,bottom:-125}}
+      hideAfter={1750} />
+</div>
 </div>
 
 <style>
   :root,
-  .container {
-    overflow: none;
+  .wrapper {
+    overflow: hidden;
   }
 
   /* .noselect */
   :root,
-  .container {
+  .wrapper {
     -webkit-touch-callout: none; /* iOS Safari */
       -webkit-user-select: none; /* Safari */
        -khtml-user-select: none; /* Konqueror HTML */
@@ -188,7 +193,10 @@
     background: linear-gradient(45deg, #002041 0%, #002b41 30%, #400f41 80%, #390d49 100%);
   }
 
-  .container {
+  .main {
+  }
+
+  .wrapper {
     --track-margin: 20px;
     --track-padding: 16px;
     --track-height: 44px;
@@ -203,9 +211,19 @@
     font-size: 12px;
     font-family: sans-serif;
     width: var(--track-view-width);
+    position: relative;
     margin: 0 auto;
     color: white;
-    overflow: none;
+
+    /* Svrollbar settings */
+    --svrollbar-track-width: 6px;
+    --svrollbar-track-background: #111111;
+    --svrollbar-track-opacity: 0;
+
+    --svrollbar-thumb-width: 6px;
+    --svrollbar-thumb-background: #724077;
+    --svrollbar-thumb-opacity: 1;
+    --svrollbar-thumb-shadow: inset 1px 1px 1px 0 #c998ce, inset -1px -1px 1.5px 0 #261428;
   }
 
   .title {
@@ -237,12 +255,23 @@
         var(--track-extra-space-bottom)) * -1);
     --track-volume-width: calc(var(--track-width) - var(--track-label-width));
 
-    overflow-y: scroll;
     height: var(--track-view-height);
     border-radius: 28px;
     padding: var(--track-margin);
     box-shadow: inset 0 0 22px 0 rgba(0, 0, 0, 0.7);
     background: linear-gradient(0deg, #12000090, #00120b70);
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+
+    /* hide scrollbar */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .tracks__viewport::-webkit-scrollbar {
+    /* hide scrollbar */
+    display: none;
   }
 
   .tracks__scrollable {
