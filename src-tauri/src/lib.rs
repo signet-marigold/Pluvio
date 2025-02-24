@@ -9,13 +9,12 @@ use tokio::time::Duration;
 
 mod noisegen;
 
-
 // Make sure the ui lines up with these init values
 // Value between 0.0(min) - 1.0(max)
 const INIT_MASTER_VOLUME: f32 = 0.5;
 const INIT_TRACK_VOLUME: f32 = 0.25;
-const VOLUME_CHANGE_DURATION: u64 = 100;
-const PAUSE_CHANGE_DURATION: u64 = 200;
+const VOLUME_CHANGE_DURATION: u64 = 150;
+const PAUSE_CHANGE_DURATION: u64 = 500;
 
 struct AudioTrack {
   sink: Arc<Sink>,
@@ -29,25 +28,32 @@ struct AppState {
   cancel_flag: Arc<AtomicBool>,
 }
 
-fn fade_volume(sink: Arc<Sink>, target_volume: f32, duration: Duration, cancel_flag: Arc<AtomicBool>) {
+fn fade_volume(
+  sink: Arc<Sink>,
+  target_volume: f32,
+  duration: Duration,
+  cancel_flag: Arc<AtomicBool>,
+) {
   let initial_volume = sink.volume();
-  let steps = 20; // Number of steps for the fade
+  let steps = 30; // Number of steps for the fade
   let step_duration = duration / steps;
-  let volume_step = (target_volume - initial_volume) / steps as f32;
 
+  // Wait long enough for any pending cancel to be detected by a running loop
+  thread::sleep(step_duration * 2);
   // Reset flag before the loop
   // This is asynchronous so we are looking for changes
-  // to the flag after fade volume has been called
+  // to the flag after fade_volume has been called
   cancel_flag.store(false, Ordering::Relaxed);
 
   for i in 0..steps {
     if cancel_flag.load(Ordering::Relaxed) {
-      println!("Fade canceled");
       cancel_flag.store(false, Ordering::Relaxed); // Reset the flag
       break;
     }
 
-    let new_volume = initial_volume + volume_step * (i + 1) as f32;
+    let t = ((i + 1) as f32 / steps as f32).powf(2.0);
+    let new_volume = initial_volume * (1.0 - t) + target_volume * t; // Exponential curve
+
     sink.set_volume(new_volume);
     thread::sleep(step_duration);
   }
@@ -63,20 +69,22 @@ async fn add_file_track(
   file_path: String,
   state: State<'_, AppState>,
 ) -> Result<(), String> {
+  println!("Adding track: {}", id);
+
   let stream_handle = &state.stream_handle;
   let sink = Sink::try_new(stream_handle).map_err(|e| e.to_string())?;
 
-  // Open the WAV file
+  // Open the file
   let file = File::open(&file_path).map_err(|e| e.to_string())?;
   let source = Decoder::new(file).map_err(|e| e.to_string())?;
   let buffered_source = source.buffered();
 
+  // Set init volume
+  sink.set_volume(0.0); // Track volume will fade in as it is unpaused
+
   // Append the source to the sink and loop it
   sink.append(buffered_source.repeat_infinite());
   sink.pause();
-
-  // Set init volume
-  sink.set_volume(0.0); // Track volume will fade in as it is unpaused
 
   // Store the track
   let mut tracks = state.tracks.lock().unwrap();
@@ -106,11 +114,11 @@ async fn add_noise_track(
     _ => return Err("Invalid noise type".into()),
   };
 
-  sink.append(source);
-  sink.pause();
-
   // Set init volume
   sink.set_volume(0.0); // Track volume will fade in as it is unpaused
+
+  sink.append(source);
+  sink.pause();
 
   let mut tracks = state.tracks.lock().unwrap();
   tracks.insert(id, AudioTrack {
@@ -144,7 +152,6 @@ async fn set_volume(
     });
 
     track.base_volume = volume;
-    println!("Volume for track {} set to: {}", id, volume);
   } else {
     return Err(format!("Track {} not found", id));
   }
@@ -177,7 +184,6 @@ async fn set_master_volume(
     });
   }
 
-  println!("Master volume set to: {}", volume);
   Ok(())
 }
 
@@ -200,7 +206,6 @@ async fn pause_track(
     fade_volume(sink, target_volume, Duration::from_millis(PAUSE_CHANGE_DURATION), cancel_flag);
 
     track.sink.pause();
-    println!("Paused track: {}", id);
   } else {
     return Err(format!("Track {} not found", id));
   }
@@ -225,20 +230,20 @@ async fn resume_track(
     let sink = Arc::clone(&track.sink); // Use a shared reference to the Sink
     let cancel_flag = Arc::clone(&state.cancel_flag); // Clone the atomic flag
 
+    sink.set_volume(0.0);
+
     // Spawn a thread to perform the fade
     thread::spawn(move || {
       fade_volume(sink, target_volume, Duration::from_millis(PAUSE_CHANGE_DURATION), cancel_flag);
     });
 
     track.sink.play();
-    println!("Resumed track: {}", id);
   } else {
     return Err(format!("Track {} not found", id));
   }
 
   Ok(())
 }
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

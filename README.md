@@ -50,7 +50,7 @@ Whether you're a developer looking for a productivity boost, a student needing f
 
 ## Screenshots 🖼️
 
-![Pluvio Interface](.github/screenshots/2025-02-22_00-23-41_ksnip.png)  
+![Pluvio Interface](.github/screenshots/2025-02-23_20-28-28_ksnip.png)  
 *The clean and intuitive interface of Pluvio.*
 
 ---
@@ -59,7 +59,7 @@ Whether you're a developer looking for a productivity boost, a student needing f
 
 ### Prerequisites
 - **Rust**: Install Rust from [rustup.rs](https://rustup.rs/).
-- **Bun**: Install Bun from [bun.sh](https://bun.sh/).
+- **NodeJS**: Install NodeJS from [nodejs.org](https://nodejs.org/).
 
 ### Steps
 1. Clone the repository:
@@ -69,11 +69,11 @@ Whether you're a developer looking for a productivity boost, a student needing f
    ```
 2. Install dependencies:
    ```bash
-   bun install
+   npm install
    ```
 3. Build and run the app:
    ```bash
-   bun run tauri dev
+   npm run tauri dev
    ```
 
 ---
