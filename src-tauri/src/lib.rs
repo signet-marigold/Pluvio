@@ -69,7 +69,7 @@ async fn add_file_track(
   file_path: String,
   state: State<'_, AppState>,
 ) -> Result<(), String> {
-  println!("Adding track: {}", id);
+  println!("Adding Track: {}", id);
 
   let stream_handle = &state.stream_handle;
   let sink = Sink::try_new(stream_handle).map_err(|e| e.to_string())?;
@@ -103,7 +103,7 @@ async fn add_noise_track(
   noise_type: String,
   state: State<'_, AppState>,
 ) -> Result<(), String> {
-  println!("Adding track: {}", id);
+  println!("Adding Track: {}", id);
 
   let sink = Sink::try_new(&state.stream_handle).map_err(|e| e.to_string())?;
 
