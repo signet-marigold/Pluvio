@@ -118,7 +118,8 @@
 </div>
 
 <style>
-  :root {
+  :root,
+  .container {
     overflow: none;
   }
 
@@ -159,19 +160,18 @@
     --tooltip-bgcolor: #3879ff;
     --tooltip-bg: linear-gradient(45deg, #275cef, #5193ff);
   }
+  .inactive {--inactive-base-color: #8c8c8c}
   .inactive .track-volume {
-    --track-focus: #a0a0a0;
-    --track-highlight-bgcolor: #a0a0a0;
-    --track-highlight-bg: #a0a0a0;
+    --track-focus: var(--inactive-base-color);
+    --track-highlight-bgcolor: var(--inactive-base-color);
+    --track-highlight-bg: var(--inactive-base-color);
     --thumb-holding-outline: transparent;
-    --tooltip-bgcolor: #a0a0a0;
-    --tooltip-bg: #a0a0a0;
-    --track-bgcolor: #a0a0a0;
-    --thumb-bgcolor: #a0a0a0;
+    --tooltip-bgcolor: var(--inactive-base-color);
+    --tooltip-bg: var(--inactive-base-color);
+    --track-bgcolor: var(--inactive-base-color);
+    --thumb-bgcolor: var(--inactive-base-color);
   }
-  .inactive .track-label {
-    color: #a0a0a0;
-  }
+  .inactive .track-label {color: var(--inactive-base-color)}
 
   .background {
     position: fixed;
@@ -186,19 +186,54 @@
   }
 
   .container {
+    --track-margin: 20px;
+    --track-padding: 16px;
+    --track-height: 44px;
+    --track-view-width: 380px;
+    --track-view-height: 258px;
+    --track-extra-space-top: 5px;
+    --track-extra-space-bottom: 5px;
+    --track-label-width: 110px;
+    --track-label-padding: 5px;
+    --title-margin: 20px;
+
     font-size: 12px;
     font-family: sans-serif;
-    width: 380px;
+    width: var(--track-view-width);
     margin: 0 auto;
     color: white;
     overflow: none;
   }
 
+  .title {
+    margin: 0 var(--title-margin);
+    width: calc(var(--track-view-width) -
+        var(--title-margin) * 2);
+    font-size: 30px;
+    margin-top: 24px;
+    object-fit: contain;
+  }
+
   .tracks__viewport {
+    --track-view-sc-height: 110px;
+    --track-width: calc(
+        var(--track-view-width) -
+        var(--track-padding) * 2 -
+        var(--track-margin) * 2);
+    --track-plate-width: calc(
+        var(--track-view-width) -
+        var(--track-margin) * 2);
+    --track-view-sc-offset: calc(
+        var(--track-view-height) -
+        var(--track-view-sc-height) +
+        var(--track-margin) * 2 -
+        var(--track-extra-space-top));
+    --track-volume-width: calc(var(--track-width) - var(--track-label-width));
+
     overflow-y: scroll;
-    height: 240px;
+    height: var(--track-view-height);
     border-radius: 28px;
-    padding: 16px;
+    padding: var(--track-margin);
     box-shadow: inset 0 0 22px 0 rgba(0, 0, 0, 0.7);
     background: linear-gradient(0deg,
       #10108060 0%,
@@ -215,37 +250,42 @@
 
   .plates__container,
   .tracks__container {
-    padding: 2px 0;
+    padding: var(--track-extra-space-top) 0 var(--track-extra-space-bottom);
   }
 
   .scroll-cover {
-    width: 380px;
-    height: 110px;
+    /*
+      image is 380px wide
+      edge curve is not preserved if stretched
+      new image is required if scrollable width changes
+    */
+    width: var(--track-view-width);
+    height: var(--track-view-sc-height);
     position: fixed;
     z-index: 2;
     object-fit: contain;
     background-repeat: no-repeat;
-    margin-left: -16px;
+    margin-left: calc(var(--track-margin) * -1);
   }
   .scroll-cover-top {
     background-image: url("$lib/assets/fade/fade_e4_white_top.svg");
-    margin-top: -2px;
+    margin-top: calc(var(--track-extra-space-top) * -1);
   }
   .scroll-cover-bottom {
     background-image: url("$lib/assets/fade/fade_e4_white_bottom.svg");
-    margin-top: 160.75px;
+    margin-top: var(--track-view-sc-offset);
   }
 
   .plates__container {
     position: absolute;
     top: 0;
     z-index: -1;
-    margin-top: -16px;
+    margin-top: calc(var(--track-margin) * -1);
   }
 
   .plate > .color {
     box-shadow: 5px 5px 8px 0px #00000060;
-    width: 349px;
+    width: var(--track-plate-width);
     position: relative;
     -webkit-transition: opacity 700ms cubic-bezier(0, 0.5, 0, 1 );
     -moz-transition: opacity 700ms cubic-bezier(0, 0.5, 0, 1);
@@ -259,7 +299,7 @@
     background: linear-gradient(45deg, #0e4c8c 0%, #751598 100%);
     position: absolute;
     z-index: 1;
-    margin-top: -50px;
+    margin-top: calc(var(--track-height) * -1);
     opacity: 0%;
   }
 
@@ -269,23 +309,33 @@
 
   .track,
   .plate > .color {
-    margin-top: 16px;
+    margin-top: var(--track-margin);
     border-radius: 20px;
-    height: 50px;
+    height: var(--track-height);
   }
 
   .track {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 14px;
-    width: 321px;
+    padding: 0 var(--track-padding);
+    width: var(--track-width);
     cursor: pointer;
   }
 
   .track:first-of-type,
   .plate:first-of-type {
     margin-top: 0;
+  }
+
+  .track-label {
+    font-weight: bold;
+    padding-left: var(--track-label-padding);
+    cursor: pointer;
+  }
+
+  .volume-container {
+    width: var(--track-volume-width);
   }
 
   .track.master {
@@ -295,31 +345,12 @@
     margin: 8px 0 16px;
   }
 
-  .track-label {
-    font-weight: bold;
-    padding-left: 5px;
-    cursor: pointer;
+  .track.master > .volume-container {
+    width: 100%;
   }
 
   .track.master,
   .track.master > .track-label {
     cursor: initial;
-  }
-
-  .volume-container {
-    width: 215px;
-  }
-
-  .track.master > .volume-container {
-    width: 415px;
-  }
-
-  .title {
-    font-size: 30px;
-    margin-left: 20px;
-    margin-bottom: 0;
-    margin-top: 30px;
-    object-fit: contain;
-    width: 340px;
   }
 </style>

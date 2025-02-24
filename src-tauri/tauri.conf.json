@@ -15,7 +15,7 @@
         "title": "Pluvio",
         "width": 520,
         "height": 560,
-        "resizable": true,
+        "resizable": false,
         "fullscreen": false
       }
     ],
