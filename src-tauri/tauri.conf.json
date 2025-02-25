@@ -1,10 +1,11 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "pluvio",
+  "productName": "Pluvio",
+  "mainBinaryName": "Pluvio",
   "version": "0.1.0",
   "identifier": "com.pluvio.dev",
   "build": {
-    "frontendDist": "../src",
+    "frontendDist": "../build",
     "devUrl": "http://localhost:1420",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
@@ -13,6 +14,7 @@
     "windows": [
       {
         "title": "Pluvio",
+        "theme": "Dark",
         "width": 488,
         "height": 534,
         "resizable": false,
