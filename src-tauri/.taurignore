@@ -1,2 +1,3 @@
+# Prevent rebuild on swap file updates
 *.swap
 *.kate-swp
