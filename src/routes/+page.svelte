@@ -9,16 +9,17 @@
     { id: 'white',  name: 'White Noise',   type: 'white' },
     { id: 'brown',  name: 'Brown Noise',   type: 'brown' },
     { id: 'pink',   name: 'Pink Noise',    type: 'pink' },
-    { id: 'rain1',  name: 'Light Rain',    type: 'assets/111405.ogg' },
-    { id: 'rain2',  name: 'Medium Rain',   type: 'assets/114354.ogg' },
-    { id: 'rain3',  name: 'Heavy Rain',    type: 'assets/111154.ogg' },
+    { id: 'rain1',  name: 'Light Rain',    type: 'f:111405.ogg' },
+    { id: 'rain2',  name: 'Medium Rain',   type: 'f:114354.ogg' },
+    { id: 'rain3',  name: 'Heavy Rain',    type: 'f:111154.ogg' },
   ];
 
   let trackStates = {};
 
   async function loadTrack(id) {
-    if (tracks.find(t => t.id === id).type.startsWith('assets/')) { // ik its hacky
-      await invoke('add_file_track', { id, filePath: tracks.find(t => t.id === id).type });
+    // Prepend track type with 'f:' to denote file loading; ik its hacky
+    if (tracks.find(t => t.id === id).type.startsWith('f:')) {
+      await invoke('add_file_track', { id, fileName: (tracks.find(t => t.id === id).type).substring(2) });
     }
     else {
       await invoke('add_noise_track', { id, noiseType: tracks.find(t => t.id === id).type });

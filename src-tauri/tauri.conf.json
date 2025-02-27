@@ -18,22 +18,39 @@
         "width": 368,
         "height": 400,
         "resizable": false,
+        "maximizable": false,
         "fullscreen": false
       }
     ],
     "security": {
-      "csp": "default-src 'self'; media-src 'self' asset: https://asset.localhost;"
+      "csp": {
+        "default-src": "'self' customprotocol: asset:",
+        "connect-src": "ipc: http://ipc.localhost",
+        "font-src": ["http://tauri.localhost"],
+        "img-src": "'self' asset: http://asset.localhost blob: data:",
+        "style-src": "'unsafe-inline' 'self'",
+        "media-src": "none",
+        "object-src": "none"
+      }
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
+    "resources": {
+      "assets/*": "assets/"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico"
+      }
+    }
   }
 }

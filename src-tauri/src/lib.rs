@@ -1,9 +1,9 @@
 use std::thread;
-use std::fs::File;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::State;
+use tauri::{State, Manager};
+use tauri::path::BaseDirectory;
 use rodio::{Decoder, Sink, Source, OutputStream, OutputStreamHandle};
 use tokio::time::Duration;
 
@@ -65,8 +65,9 @@ fn fade_volume(
 #[tauri::command]
 async fn add_file_track(
   id: String,
-  file_path: String,
+  file_name: String,
   state: State<'_, AppState>,
+  handle: tauri::AppHandle,
 ) -> Result<(), String> {
   println!("Adding Track: {}", id);
 
@@ -74,7 +75,9 @@ async fn add_file_track(
   let sink = Sink::try_new(stream_handle).map_err(|e| e.to_string())?;
 
   // Open the file
-  let file = File::open(&file_path).map_err(|e| e.to_string())?;
+  let asset_path = format!("assets/{}", file_name);
+  let resource_path = handle.path().resolve(asset_path, BaseDirectory::Resource).map_err(|e| e.to_string())?;
+  let file = std::fs::File::open(&resource_path).unwrap();
   let source = Decoder::new(file).map_err(|e| e.to_string())?;
   let buffered_source = source.buffered();
 
