@@ -23,13 +23,14 @@
       }
     ],
     "security": {
+      "dangerousDisableAssetCspModification": ["style-src"],
       "csp": {
         "default-src": "'self' customprotocol: asset:",
         "connect-src": "ipc: http://ipc.localhost",
         "font-src": ["http://tauri.localhost"],
         "img-src": "'self' asset: http://asset.localhost blob: data:",
-        "style-src": "'unsafe-inline' 'self'",
-        "media-src": "none",
+        "style-src": "'self' 'unsafe-inline'",
+        "media-src": "'self' asset: https://asset.localhost",
         "object-src": "none"
       }
     }
