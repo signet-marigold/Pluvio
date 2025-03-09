@@ -102,7 +102,7 @@ Double click on the downloaded file
 
 - NixOS
 
-I've written a flake for installing on nix controlled systems
+I've written a flake
 
 You can find instructions for that here: [Pluvio Flake](https://github.com/signet-marigold/pluvio-flake)
 
