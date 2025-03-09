@@ -165,7 +165,8 @@ How to build on your machine
 
 Packaged executables are located in `<root>/src-tauri/target/release/bundle/`
 
-If you are curious about how to install on your machine or don't wish to build from source: follow [Installation]
+> [!NOTE]
+> If you are curious about how to install on your machine or don't wish to build from source: follow [Installation](https://github.com/signet-marigold/Pluvio?tab=readme-ov-file#installation-)
 
 #### Development 🏗️
 
